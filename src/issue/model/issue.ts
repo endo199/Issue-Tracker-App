@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty } from 'class-validator';
+import { Comment } from './comment';
 
 export class Issue {
     id?: number;
@@ -14,6 +15,8 @@ export class Issue {
     postDate: Date = new Date();
     author: string;
     closed?: Date;
+
+    comments: Comment[] = [];
 
     constructor(title?: string, description?: string) {
         this.title = title;

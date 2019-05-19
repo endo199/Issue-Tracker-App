@@ -1,10 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { Issue } from './issue/model/issue';
+import { Comment } from './issue/model/comment';
 import { of, Observable } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class DatabaseService {
-    private issues = {};
+    private issues = {
+        999: {
+            id: 999,
+            title: 'title 1',
+            description: 'This is description',
+            postDate: new Date(),
+            author: 'user1',
+            comments: []
+        }
+    };
 
     generateId(): number {
         return new Date().getTime();
@@ -37,5 +48,30 @@ export class DatabaseService {
         delete(this.issues[id]);
 
         return of(issue);
+    }
+
+    // Comments
+    addComment(issueId: number, comment: Comment) {
+        // return this.getIssue(issueId).pipe(
+        //     mergeMap(issue => {
+        //         issue.comments.splice(0, 0, comment);
+        //         return of(comment);
+        //     })
+        // );
+        this.issues[issueId].comments.splice(0, 0, comment);
+        return of(comment);
+    }
+    deleteComment(issueId: number, index: number) {
+        // return this.getIssue(issueId).pipe(
+        //     mergeMap(issue => {
+        //         const deletedComment = issue.comments.splice(index, 1);
+        //         return of(deletedComment[0]);
+        //     })
+        // );
+        const deletedComment = this.issues[issueId].comments.splice(index, 1);
+        return of(deletedComment[0]);
+    }
+    getComments(issueId: number, rowPerPage: number, page: number) {
+        throw new Error("Method not implemented.");
     }
 }
