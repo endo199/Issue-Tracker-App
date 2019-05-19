@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, ForbiddenException, HttpCode, Delete, UseGuards,
     Headers, UnauthorizedException, NotFoundException, UsePipes, ValidationPipe,
-    NotAcceptableException, ParseIntPipe} from '@nestjs/common';
+    NotAcceptableException, ParseIntPipe, UseInterceptors} from '@nestjs/common';
 
 import { mergeMap } from 'rxjs/operators';
 import { iif, of, throwError, Observable } from 'rxjs';
@@ -8,8 +8,8 @@ import { iif, of, throwError, Observable } from 'rxjs';
 import { IssueService } from './issue.service';
 import { Issue } from './model/issue';
 import { AuthGuard } from '../directive/auth.guard';
-import { Utils } from '../util/utils';
 import { IssuePipe } from './directive/issue.pipe';
+import { UserInterceptor } from '../directive/user.interceptor';
 
 @Controller('issue')
 export class IssueController {
@@ -29,10 +29,8 @@ export class IssueController {
 
     @Post()
     @UseGuards(AuthGuard)
-    createIssue(@Body(new IssuePipe()) issue: Issue, @Headers('authorization') auth: string) {
-        const user = Utils.extractUsernameFromAuthHeader(auth);
-        issue.author = user.username;
-
+    @UseInterceptors(UserInterceptor)
+    createIssue(@Body(new IssuePipe()) issue: Issue) {
         return this.issueService.create(issue);
     }
 
@@ -40,10 +38,8 @@ export class IssueController {
     @HttpCode(204)
     @UseGuards(AuthGuard)
     @UsePipes(new ValidationPipe())
-    updateIssue(@Param('id', ParseIntPipe) id: number, @Body(new IssuePipe()) issue: Issue, @Headers('authorization') auth: string) {
-        const user = Utils.extractUsernameFromAuthHeader(auth);
-        issue.author = user.username;
-
+    @UseInterceptors(UserInterceptor)
+    updateIssue(@Param('id', ParseIntPipe) id: number, @Body(new IssuePipe()) issue: Issue) {
         return this.issueService.get(id).pipe(
             mergeMap(oldIssue => iif(
                 () => !!oldIssue, 
@@ -51,7 +47,6 @@ export class IssueController {
                     if (oldIssue.author !== issue.author) {
                         observer.error(new UnauthorizedException(`You are not allowed to update this issue`));
                     } else if (oldIssue.closed) {
-                        console.log('XXX issue is already closed');
                         observer.error(new ForbiddenException('Issue already closed'));
                     }
 
@@ -68,16 +63,16 @@ export class IssueController {
     @Delete(':id')
     @HttpCode(204)
     @UseGuards(AuthGuard)
-    deleteIssue(@Param('id', ParseIntPipe) id: number, @Headers('authorization') auth: string) {
-        const user = Utils.extractUsernameFromAuthHeader(auth);
+    @UseInterceptors(UserInterceptor)
+    deleteIssue(@Param('id', ParseIntPipe) id: number, @Body('author') author: string) {
+        // const user = Utils.extractUsernameFromAuthHeader(auth);
         return this.issueService.get(id).pipe(
             mergeMap(oldIssue => iif(
                 () => !!oldIssue, 
                 Observable.create((observer) => {
-                    if (oldIssue.author !== user.username) {
+                    if (oldIssue.author !== author) {
                         observer.error(new UnauthorizedException(`You are not allowed to delete this issue`));
                     } else if (oldIssue.closed) {
-                        console.log('XXX issue is already closed');
                         observer.error(new ForbiddenException('Closed issue can\'t be deleted'));
                     }
 
@@ -91,16 +86,15 @@ export class IssueController {
     }
 
     @Put(':id/close')
-    closeIssue(@Param('id', ParseIntPipe) id: number, @Headers('authorization') auth: string) {
-        const user = Utils.extractUsernameFromAuthHeader(auth);
+    @UseInterceptors(UserInterceptor)
+    closeIssue(@Param('id', ParseIntPipe) id: number, @Body('author') author: string) {
         return this.issueService.get(id).pipe(
             mergeMap(oldIssue => iif(
                 () => !!oldIssue, 
                 Observable.create((observer) => {
-                    if (oldIssue.author !== user.username) {
+                    if (oldIssue.author !== author) {
                         observer.error(new UnauthorizedException(`You are not allowed to close this issue`));
                     } else if (oldIssue.closed) {
-                        console.log('XXX issue is already closed');
                         observer.error(new NotAcceptableException(`It's already closed at ${oldIssue.closed.toISOString()}`));
                     }
 

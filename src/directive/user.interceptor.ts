@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { Utils } from 'src/util/utils';
+import { Utils } from '../util/utils';
 
 @Injectable()
 export class UserInterceptor implements NestInterceptor {
