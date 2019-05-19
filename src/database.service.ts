@@ -1,21 +1,13 @@
 import { Injectable } from '@nestjs/common';
+
+import { of, Observable } from 'rxjs';
+
 import { Issue } from './issue/model/issue';
 import { Comment } from './issue/model/comment';
-import { of, Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class DatabaseService {
-    private issues = {
-        999: {
-            id: 999,
-            title: 'title 1',
-            description: 'This is description',
-            postDate: new Date(),
-            author: 'user1',
-            comments: []
-        }
-    };
+    private issues = {};
 
     generateId(): number {
         return new Date().getTime();

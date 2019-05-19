@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Post, Body, Put, ForbiddenException, HttpCode, Delete, UseGuards,
-    Headers, UnauthorizedException, NotFoundException, UsePipes, ValidationPipe,
+    UnauthorizedException, NotFoundException, UsePipes, ValidationPipe,
     NotAcceptableException, ParseIntPipe, UseInterceptors} from '@nestjs/common';
 
 import { mergeMap } from 'rxjs/operators';
