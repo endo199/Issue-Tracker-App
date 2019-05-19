@@ -52,22 +52,10 @@ export class DatabaseService {
 
     // Comments
     addComment(issueId: number, comment: Comment) {
-        // return this.getIssue(issueId).pipe(
-        //     mergeMap(issue => {
-        //         issue.comments.splice(0, 0, comment);
-        //         return of(comment);
-        //     })
-        // );
         this.issues[issueId].comments.splice(0, 0, comment);
         return of(comment);
     }
     deleteComment(issueId: number, index: number) {
-        // return this.getIssue(issueId).pipe(
-        //     mergeMap(issue => {
-        //         const deletedComment = issue.comments.splice(index, 1);
-        //         return of(deletedComment[0]);
-        //     })
-        // );
         const deletedComment = this.issues[issueId].comments.splice(index, 1);
         return of(deletedComment[0]);
     }
